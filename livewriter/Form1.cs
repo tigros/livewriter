@@ -111,7 +111,7 @@ namespace livewriter
             return dev;
         }
 
-        void initsource()
+        void initandstart()
         {
             int dev = getdevicenumber();
             if (sourceStream == null && dev != -1)
@@ -122,6 +122,9 @@ namespace livewriter
                     WaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(32000, 1)
                 };
                 sourceStream.DataAvailable += SourceStream_DataAvailable;
+                currenttmp = newtmp();
+                waveWriter = new WaveFileWriter(currenttmp, sourceStream.WaveFormat);
+                sourceStream.StartRecording();
             }
 
             if ((checkBox1.Checked || dev == -1) && sysin == null)
@@ -129,6 +132,9 @@ namespace livewriter
                 sysin = new WasapiLoopbackCapture();
                 sysin.WaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(32000, 1);
                 sysin.DataAvailable += Sysin_DataAvailable;
+                currentsystmp = newtmp();
+                sysWriter = new WaveFileWriter(currentsystmp, sysin.WaveFormat);
+                sysin.StartRecording();
             }
         }
 
@@ -175,22 +181,16 @@ namespace livewriter
             {
                 stopmic();
                 stopwavewriter();
-                initsource();
                 whisperq.Enqueue(currenttmp);
-                currenttmp = newtmp();
-                waveWriter = new WaveFileWriter(currenttmp, sourceStream.WaveFormat);
-                sourceStream.StartRecording();
+                initandstart();
             }
 
             if (totavgsys > numericUpDown1.Value * 100)
             {
                 stopsys();
                 stopsyswriter();
-                initsource();
                 whisperq.Enqueue(currentsystmp);
-                currentsystmp = newtmp();
-                sysWriter = new WaveFileWriter(currentsystmp, sysin.WaveFormat);
-                sysin.StartRecording();
+                initandstart();
             }
 
             totavg = totavgsys = 0;
@@ -361,18 +361,7 @@ namespace livewriter
                         MessageBox.Show(glbmodel + " not found!");
                         return;
                     }
-                    initsource();
-                    currenttmp = newtmp();
-                    waveWriter = new WaveFileWriter(currenttmp, sourceStream.WaveFormat);
-                    sourceStream.StartRecording();
-
-                    if (checkBox1.Checked)
-                    {
-                        currentsystmp = newtmp();
-                        sysWriter = new WaveFileWriter(currentsystmp, sourceStream.WaveFormat);
-                        sysin.StartRecording();
-                    }
-
+                    initandstart();
                     button1.Text = "Stop";
                     startq();
                     timer1.Interval = (int)numericUpDown1.Value * 1000;
