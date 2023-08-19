@@ -123,6 +123,7 @@ namespace livewriter
                 };
                 sourceStream.DataAvailable += SourceStream_DataAvailable;
                 currenttmp = newtmp();
+                totavg = 0;
                 waveWriter = new WaveFileWriter(currenttmp, sourceStream.WaveFormat);
                 sourceStream.StartRecording();
             }
@@ -133,6 +134,7 @@ namespace livewriter
                 sysin.WaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(32000, 1);
                 sysin.DataAvailable += Sysin_DataAvailable;
                 currentsystmp = newtmp();
+                totavgsys = 0;
                 sysWriter = new WaveFileWriter(currentsystmp, sysin.WaveFormat);
                 sysin.StartRecording();
             }
