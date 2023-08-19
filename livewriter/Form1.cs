@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Windows.Forms;
-using WindowsInput;
 
 namespace livewriter
 {
@@ -309,7 +308,7 @@ namespace livewriter
                     if (s != "" && timer1.Enabled)
                     {
                         Debug.WriteLine(s);
-                        InputSimulator.SimulateTextEntry(nonewline(s + Environment.NewLine));
+                        SendKeys.SendWait(nonewline(s + Environment.NewLine));
                     }
                     File.Delete(txt);
                 }
