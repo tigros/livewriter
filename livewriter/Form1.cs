@@ -39,7 +39,8 @@ namespace livewriter
                     {
                         string[] lang = line.Split('\t');
                         string proper = toproper(lang[2]);
-                        langs.Add(proper, lang[0]); comboBox1.Items.Add(proper);
+                        langs.Add(proper, lang[0]); 
+                        comboBox1.Items.Add(proper);
                     }
                 }
                 else
@@ -51,6 +52,7 @@ namespace livewriter
                 textBox1.Text = readreg("modelpath", textBox1.Text);
                 comboBox1.Text = readreg("language", "English");
                 numericUpDown1.Value = Convert.ToDecimal(readreg("frequency", "10"));
+                checkBox2.Checked = Convert.ToBoolean(readreg("translate", "False"));
                 setinputs();
             }
             catch (Exception ex)
@@ -61,7 +63,12 @@ namespace livewriter
 
         string toproper(string s)
         {
-            return s.Substring(0, 1).ToUpper() + s.Substring(1);
+            try
+            {
+                return s.Substring(0, 1).ToUpper() + s.Substring(1);
+            }
+            catch { }
+            return "English";
         }
 
         void setinputs()
@@ -296,6 +303,41 @@ namespace livewriter
             return s.Replace(Environment.NewLine, "\r");
         }
 
+        bool oneor2(string brak)
+        {
+            brak = brak.Replace("[", "").Replace("]", "").Trim();
+            return brak.Split(' ').Length <= 2;
+        }
+
+        bool hasbracket(ref string s)
+        {
+            int l = s.IndexOf('[');
+            int r = s.IndexOf(']');
+
+            if (l != -1 && r != -1 && l < r)
+            {
+                string brak = s.Substring(l, r - l + 1);
+                if (oneor2(brak))
+                {
+                    s = s.Replace(brak, "").Trim();
+                    while (s.Contains("  "))
+                        s = s.Replace("  ", " ");
+                    return s.Contains("[");
+                }
+            }
+            return false;
+        }
+
+        string clean(string s)
+        {
+            try
+            {
+                while (hasbracket(ref s)) ;
+            }
+            catch { }
+            return s;
+        }
+
         private void whisper_Exited(object sender, EventArgs e)
         {
             try
@@ -306,7 +348,7 @@ namespace livewriter
                 string txt = filename.Remove(filename.Length - 4) + ".txt";
                 if (File.Exists(txt))
                 {
-                    string s = File.ReadAllText(txt).Trim();
+                    string s = clean(File.ReadAllText(txt).Trim());
                     if (s != "" && timer1.Enabled)
                     {
                         Debug.WriteLine(s);
@@ -417,12 +459,19 @@ namespace livewriter
             thr.Start();
         }
 
+        private void button4_Click(object sender, EventArgs e)
+        {
+            if (openFileDialog2.ShowDialog() == DialogResult.OK)
+                textBox1.Text = openFileDialog2.FileName;
+        }
+
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             stop();
             writereg("modelpath", textBox1.Text);
             writereg("language", comboBox1.Text);
             writereg("frequency", numericUpDown1.Value.ToString());
+            writereg("translate", checkBox2.Checked.ToString());
             waitanddelete();
         }
     }
